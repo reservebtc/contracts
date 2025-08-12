@@ -38,7 +38,7 @@ contract VaultWrBTC_Unit is Test {
         assertEq(vault.balanceOf(alice), 150);
         assertEq(vault.totalSupply(), 150);
         assertEq(token.escrowOf(alice), 150);
-        assertEq(token.freeBalanceOf(alice), 600);
+        assertEq(token.freeBalanceOf(alice), 850);
     }
 
     function test_SlashFromOracle() public {

@@ -24,13 +24,29 @@ contract MockRBTCToken is IRBTCToken {
     mapping(address => uint256) public freeBal;
     mapping(address => uint256) public escBal;
 
-    function freeBalanceOf(address u) external view returns (uint256) { return freeBal[u]; }
-    function escrowOf(address u) external view returns (uint256) { return escBal[u]; }
-    function totalBackedOf(address u) public view returns (uint256) { return freeBal[u] + escBal[u]; }
+    function freeBalanceOf(address u) external view returns (uint256) {
+        return freeBal[u];
+    }
 
-    function mintFromOracle(address to, uint256 amount) external { freeBal[to] += amount; }
-    function burnFromOracle(address from, uint256 amount) external { freeBal[from] -= amount; }
-    function debitEscrowFromOracle(address user, uint256 amount) external { escBal[user] -= amount; }
+    function escrowOf(address u) external view returns (uint256) {
+        return escBal[u];
+    }
+
+    function totalBackedOf(address u) public view returns (uint256) {
+        return freeBal[u] + escBal[u];
+    }
+
+    function mintFromOracle(address to, uint256 amount) external {
+        freeBal[to] += amount;
+    }
+
+    function burnFromOracle(address from, uint256 amount) external {
+        freeBal[from] -= amount;
+    }
+
+    function debitEscrowFromOracle(address user, uint256 amount) external {
+        escBal[user] -= amount;
+    }
 
     // helpers for tests
     function wrap(address user, uint256 amount) external {
@@ -47,24 +63,24 @@ contract MockVault is IWrVault {
     function slashFromOracle(address user, uint256 amount) external {
         require(wr[user] >= amount, "insufficient");
         wr[user] -= amount;
-        total    -= amount;
+        total -= amount;
     }
 
     // helpers to simulate onWrap
     function onWrap(address user, uint256 amount) external {
         wr[user] += amount;
-        total    += amount;
+        total += amount;
     }
 }
 
 contract Oracle_Sync_Unit is Test {
     MockRBTCToken internal t;
-    MockVault     internal v;
-    rBTCOracle    internal o;
+    MockVault internal v;
+    rBTCOracle internal o;
 
     address internal owner = address(this);
-    address internal op    = address(this);
-    address internal user  = address(0xAAA);
+    address internal op = address(this);
+    address internal user = address(0xAAA);
 
     function setUp() public {
         t = new MockRBTCToken();
@@ -107,8 +123,8 @@ contract Oracle_Sync_Unit is Test {
     function testFuzz_Sync_RandomMonotonic(uint96 start, uint96 inc1, uint96 dec1) public {
         // normalize
         start = uint96(bound(start, 0, 1e12));
-        inc1  = uint96(bound(inc1, 0, 1e12));
-        dec1  = uint96(bound(dec1, 0, start + inc1));
+        inc1 = uint96(bound(inc1, 0, 1e12));
+        dec1 = uint96(bound(dec1, 0, start + inc1));
 
         // start
         o.syncVerifiedTotal(user, start, 1);

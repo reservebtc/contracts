@@ -28,13 +28,29 @@ contract MockRBTCToken is IRBTCToken {
     mapping(address => uint256) public freeBal;
     mapping(address => uint256) public escBal;
 
-    function freeBalanceOf(address u) external view returns (uint256) { return freeBal[u]; }
-    function escrowOf(address u) external view returns (uint256) { return escBal[u]; }
-    function totalBackedOf(address u) public view returns (uint256) { return freeBal[u] + escBal[u]; }
+    function freeBalanceOf(address u) external view returns (uint256) {
+        return freeBal[u];
+    }
 
-    function mintFromOracle(address to, uint256 amount) external { freeBal[to] += amount; }
-    function burnFromOracle(address from, uint256 amount) external { freeBal[from] -= amount; }
-    function debitEscrowFromOracle(address user, uint256 amount) external { escBal[user] -= amount; }
+    function escrowOf(address u) external view returns (uint256) {
+        return escBal[u];
+    }
+
+    function totalBackedOf(address u) public view returns (uint256) {
+        return freeBal[u] + escBal[u];
+    }
+
+    function mintFromOracle(address to, uint256 amount) external {
+        freeBal[to] += amount;
+    }
+
+    function burnFromOracle(address from, uint256 amount) external {
+        freeBal[from] -= amount;
+    }
+
+    function debitEscrowFromOracle(address user, uint256 amount) external {
+        escBal[user] -= amount;
+    }
 
     function wrap(address user, uint256 amount) external {
         require(freeBal[user] >= amount, "insufficient");
@@ -50,15 +66,17 @@ contract MockVault is IWrVault {
     function slashFromOracle(address user, uint256 amount) external {
         require(wr[user] >= amount, "insufficient");
         wr[user] -= amount;
-        _total   -= amount;
+        _total -= amount;
     }
 
     function onWrap(address user, uint256 amount) external {
         wr[user] += amount;
-        _total   += amount;
+        _total += amount;
     }
 
-    function total() external view returns (uint256) { return _total; }
+    function total() external view returns (uint256) {
+        return _total;
+    }
 }
 
 // Handler generates random actions simulating oracle sync and user wraps
@@ -70,7 +88,10 @@ contract Handler {
     address public immutable user;
 
     constructor(rBTCOracle _o, MockRBTCToken _t, MockVault _v, address _user) {
-        oracle = _o; token = _t; vault = _v; user = _user;
+        oracle = _o;
+        token = _t;
+        vault = _v;
+        user = _user;
     }
 
     function act(uint256 seed) external {
@@ -103,9 +124,9 @@ contract Handler {
 
 contract Oracle_Invariant is StdInvariant, Test {
     MockRBTCToken internal t;
-    MockVault     internal v;
-    rBTCOracle    internal o;
-    Handler       internal h;
+    MockVault internal v;
+    rBTCOracle internal o;
+    Handler internal h;
 
     address internal user = address(0xAAA);
 
@@ -120,8 +141,8 @@ contract Oracle_Invariant is StdInvariant, Test {
     function invariant_TotalEqualsFreePlusEscrow() public view {
         // by construction true, but ensure solidity arithmetic stable during fuzz
         uint256 total = t.totalBackedOf(user);
-        uint256 free  = t.freeBalanceOf(user);
-        uint256 esc   = t.escrowOf(user);
+        uint256 free = t.freeBalanceOf(user);
+        uint256 esc = t.escrowOf(user);
         assertEq(total, free + esc, "sum mismatch");
     }
 

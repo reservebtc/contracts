@@ -9,15 +9,15 @@ contract rBTCSYNTH {
     // ---- ERC20 metadata ----
     string public constant name = "Reserve BTC (Soulbound)";
     string public constant symbol = "rBTC-SYNTH";
-    uint8  public constant decimals = 8; // denominated in satoshis
+    uint8 public constant decimals = 8; // denominated in satoshis
 
     // ---- roles/links ----
-    address public immutable oracle;  // address of rBTCOracle
-    address public vault;              // the only wrapping contract
-    bool    public vaultFrozen;        // can be frozen after initial set
+    address public immutable oracle; // address of rBTCOracle
+    address public vault; // the only wrapping contract
+    bool public vaultFrozen; // can be frozen after initial set
 
     // ---- balances ----
-    mapping(address => uint256) private _free;   // free balance (soulbound)
+    mapping(address => uint256) private _free; // free balance (soulbound)
     mapping(address => uint256) private _escrow; // locked in Vault (under wrBTC)
 
     // ---- events/errors ----
@@ -40,6 +40,7 @@ contract rBTCSYNTH {
         if (msg.sender != oracle) revert OnlyOracle();
         _;
     }
+
     modifier onlyVault() {
         if (msg.sender != vault) revert OnlyVault();
         _;
@@ -51,11 +52,19 @@ contract rBTCSYNTH {
     }
 
     // ---- view ----
-    function freeBalanceOf(address u) public view returns (uint256) { return _free[u]; }
-    function escrowOf(address u)     public view returns (uint256) { return _escrow[u]; }
-    function totalBackedOf(address u) public view returns (uint256) { return _free[u] + _escrow[u]; }
+    function freeBalanceOf(address u) public view returns (uint256) {
+        return _free[u];
+    }
 
-    function totalSupply() external view returns (uint256 s) {
+    function escrowOf(address u) public view returns (uint256) {
+        return _escrow[u];
+    }
+
+    function totalBackedOf(address u) public view returns (uint256) {
+        return _free[u] + _escrow[u];
+    }
+
+    function totalSupply() external pure returns (uint256 s) {
         // For monitoring purposes: not calculating total supply across all users (gas expensive),
         // could store an aggregate during mint/burn if needed (simplified here).
         return 0;
@@ -79,7 +88,7 @@ contract rBTCSYNTH {
         if (vault == address(0)) revert VaultNotSet();
         if (_free[msg.sender] < amount) revert InsufficientFree();
 
-        _free[msg.sender]  -= amount;
+        _free[msg.sender] -= amount;
         _escrow[msg.sender] += amount;
 
         IVaultWrBTC(vault).onWrap(msg.sender, amount);
@@ -90,7 +99,7 @@ contract rBTCSYNTH {
     function unwrapFromVault(address to, uint256 amount) external onlyVault {
         if (_escrow[to] < amount) revert InsufficientEscrow();
         _escrow[to] -= amount;
-        _free[to]   += amount;
+        _free[to] += amount;
         emit Unwrapped(to, amount);
     }
 
@@ -114,8 +123,19 @@ contract rBTCSYNTH {
     }
 
     // ---- fully disable ERC20 transfers ----
-    function transfer(address, uint256) external pure returns (bool) { revert TransfersDisabled(); }
-    function approve(address, uint256)  external pure returns (bool) { revert TransfersDisabled(); }
-    function transferFrom(address, address, uint256) external pure returns (bool) { revert TransfersDisabled(); }
-    function allowance(address, address) external pure returns (uint256) { return 0; }
+    function transfer(address, uint256) external pure returns (bool) {
+        revert TransfersDisabled();
+    }
+
+    function approve(address, uint256) external pure returns (bool) {
+        revert TransfersDisabled();
+    }
+
+    function transferFrom(address, address, uint256) external pure returns (bool) {
+        revert TransfersDisabled();
+    }
+
+    function allowance(address, address) external pure returns (uint256) {
+        return 0;
+    }
 }

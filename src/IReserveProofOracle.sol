@@ -17,11 +17,10 @@ interface IReserveProofOracle {
     /// @param btcAddressBytes Raw BTC address bytes as provided during verification.
     /// @param merkleProof Merkle proof from leaf to the stored Merkle root.
     /// @return True if the binding is valid.
-    function verifyBinding(
-        address user,
-        bytes calldata btcAddressBytes,
-        bytes32[] calldata merkleProof
-    ) external view returns (bool);
+    function verifyBinding(address user, bytes calldata btcAddressBytes, bytes32[] calldata merkleProof)
+        external
+        view
+        returns (bool);
 
     /// @notice Quick 1:1 check that issued synthetic equals the verified BTC reserve.
     /// @param user EVM address of the user.

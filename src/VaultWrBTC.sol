@@ -9,14 +9,14 @@ contract VaultWrBTC {
     // --- ERC20 metadata ---
     string public constant name = "Wrapped Reserve BTC";
     string public constant symbol = "wrBTC";
-    uint8  public constant decimals = 8;
+    uint8 public constant decimals = 8;
 
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
     // --- linked contracts & roles ---
-    address public immutable rbtc;   // rBTC-SYNTH
+    address public immutable rbtc; // rBTC-SYNTH
     address public immutable oracle; // rBTCOracle
 
     // --- events ---
@@ -34,12 +34,19 @@ contract VaultWrBTC {
     error InsufficientAllowance();
 
     // --- modifiers ---
-    modifier onlyToken()  { if (msg.sender != rbtc)   revert OnlyToken();  _; }
-    modifier onlyOracle() { if (msg.sender != oracle) revert OnlyOracle(); _; }
+    modifier onlyToken() {
+        if (msg.sender != rbtc) revert OnlyToken();
+        _;
+    }
+
+    modifier onlyOracle() {
+        if (msg.sender != oracle) revert OnlyOracle();
+        _;
+    }
 
     constructor(address _rbtc, address _oracle) {
         require(_rbtc != address(0) && _oracle != address(0), "zero");
-        rbtc   = _rbtc;
+        rbtc = _rbtc;
         oracle = _oracle;
     }
 
@@ -92,7 +99,7 @@ contract VaultWrBTC {
     function _move(address from, address to, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            balanceOf[to]   += amount;
+            balanceOf[to] += amount;
         }
         emit Transfer(from, to, amount);
     }
@@ -100,7 +107,7 @@ contract VaultWrBTC {
     function _burn(address from, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            totalSupply     -= amount;
+            totalSupply -= amount;
         }
         emit Transfer(from, address(0), amount);
     }

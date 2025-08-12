@@ -22,17 +22,12 @@ interface IWrVault {
 
 /// @dev Minimal MerkleProof implementation (OpenZeppelin-compatible order).
 library MerkleProof {
-    function verify(
-        bytes32[] memory proof,
-        bytes32 root,
-        bytes32 leaf
-    ) internal pure returns (bool ok) {
+    function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf) internal pure returns (bool ok) {
         bytes32 computed = leaf;
         for (uint256 i = 0; i < proof.length; i++) {
             bytes32 p = proof[i];
-            computed = (computed <= p)
-                ? keccak256(abi.encodePacked(computed, p))
-                : keccak256(abi.encodePacked(p, computed));
+            computed =
+                (computed <= p) ? keccak256(abi.encodePacked(computed, p)) : keccak256(abi.encodePacked(p, computed));
         }
         return computed == root;
     }
@@ -47,15 +42,15 @@ library MerkleProof {
  */
 contract rBTCOracle is IReserveProofOracle {
     // ---- linked contracts ----
-    IRBTCToken public immutable rbtc;   // rBTC-SYNTH token
-    IWrVault   public immutable vault;  // wrBTC vault
+    IRBTCToken public immutable rbtc; // rBTC-SYNTH token
+    IWrVault public immutable vault; // wrBTC vault
 
     // ---- operators/admin ----
     address public owner;
     mapping(address => bool) public isOperator;
 
     // ---- integrator-facing state ----
-    bytes32 public override merkleRoot;                  // binding user ↔ btcAddr
+    bytes32 public override merkleRoot; // binding user ↔ btcAddr
     mapping(address => uint64) public override lastVerifiedRound; // optional round index
 
     // ---- events ----
@@ -80,7 +75,7 @@ contract rBTCOracle is IReserveProofOracle {
 
     constructor(address _rbtc, address _vault, bytes32 _root) {
         require(_rbtc != address(0) && _vault != address(0), "zero");
-        rbtc  = IRBTCToken(_rbtc);
+        rbtc = IRBTCToken(_rbtc);
         vault = IWrVault(_vault);
 
         owner = msg.sender;
@@ -124,11 +119,12 @@ contract rBTCOracle is IReserveProofOracle {
     }
 
     /// @inheritdoc IReserveProofOracle
-    function verifyBinding(
-        address user,
-        bytes calldata btcAddressBytes,
-        bytes32[] calldata proof
-    ) public view override returns (bool) {
+    function verifyBinding(address user, bytes calldata btcAddressBytes, bytes32[] calldata proof)
+        public
+        view
+        override
+        returns (bool)
+    {
         // leaf = keccak(user, keccak(btcAddressBytes))
         bytes32 leaf = keccak256(abi.encode(user, keccak256(btcAddressBytes)));
         return MerkleProof.verify(proof, merkleRoot, leaf);
@@ -151,11 +147,7 @@ contract rBTCOracle is IReserveProofOracle {
      * @param newTotalSats Confirmed BTC total (free + escrow) in sats.
      * @param round Optional monitoring round/cycle number (0 to skip).
      */
-    function syncVerifiedTotal(
-        address user,
-        uint256 newTotalSats,
-        uint64 round
-    ) external onlyOperatorM {
+    function syncVerifiedTotal(address user, uint256 newTotalSats, uint64 round) external onlyOperatorM {
         uint256 curTotal = rbtc.totalBackedOf(user);
 
         if (newTotalSats > curTotal) {
@@ -174,8 +166,8 @@ contract rBTCOracle is IReserveProofOracle {
 
             // 2) If still needed, slash wrBTC in the Vault and debit escrow
             if (toBurn > 0) {
-                vault.slashFromOracle(user, toBurn);         // burns wrBTC
-                rbtc.debitEscrowFromOracle(user, toBurn);    // decreases escrow
+                vault.slashFromOracle(user, toBurn); // burns wrBTC
+                rbtc.debitEscrowFromOracle(user, toBurn); // decreases escrow
             }
         }
 

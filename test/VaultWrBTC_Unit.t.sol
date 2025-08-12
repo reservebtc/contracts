@@ -11,7 +11,7 @@ contract VaultWrBTC_Unit is Test {
 
     address internal oracle = address(this);
     address internal alice = address(0xA11CE);
-    address internal bob   = address(0xB0B);
+    address internal bob = address(0xB0B);
 
     function setUp() public {
         token = new rBTCSYNTH(oracle);

@@ -1,0 +1,17 @@
+name: forge
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - run: forge --version
+      - run: forge build
+      - run: forge test -vv --no-match-contract Oracle_Invariant
+      - run: FOUNDRY_INVARIANT_RUNS=2000 FOUNDRY_INVARIANT_DEPTH=300 forge test --match-contract Oracle_Invariant -vv

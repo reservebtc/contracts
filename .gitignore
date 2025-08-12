@@ -1,1 +1,5 @@
+# coverage report (HTML output)
+coverage-html/
 
+# local env (keep example tracked)
+.env

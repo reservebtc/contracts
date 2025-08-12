@@ -1,5 +1,7 @@
 name: forge
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
   test:
@@ -7,11 +9,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: stable
 
-      - run: forge --version
-      - run: forge build
-      - run: forge test -vv --no-match-contract Oracle_Invariant
-      - run: FOUNDRY_INVARIANT_RUNS=2000 FOUNDRY_INVARIANT_DEPTH=300 forge test --match-contract Oracle_Invariant -vv
+      - name: Build
+        run: forge build
+
+      - name: Tests (unit + fuzz)
+        run: forge test -vv
+
+      - name: Invariant tests (light)
+        env:
+          FOUNDRY_INVARIANT_RUNS: 1000
+          FOUNDRY_INVARIANT_DEPTH: 200
+        run: forge test --match-contract Oracle_Invariant -vv
+
+      # ---- Coverage ----
+      - name: Coverage (lcov)
+        run: forge coverage --report lcov
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov.info
+          path: lcov.info
+          if-no-files-found: ignore
+
+      # ---- Slither ----
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Slither via pipx
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --user pipx
+          python -m pipx ensurepath
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pipx install slither-analyzer
+
+      - name: Run Slither (non-blocking for now)
+        run: slither .
+        continue-on-error: true

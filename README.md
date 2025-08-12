@@ -1,4 +1,5 @@
-[![Build Status](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/forge.yml) [![Coverage Status](https://img.shields.io/badge/coverage-lcov-green)](./lcov.info)
+[![Build Status](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/forge.yml)
+[![Coverage Status](https://img.shields.io/badge/coverage-lcov-green)](./lcov.info)
 
 
 # ReserveBTC Contracts

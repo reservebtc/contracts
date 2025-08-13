@@ -1,7 +1,9 @@
 [![Build Status](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/forge.yml)
 [![Coverage Status](https://img.shields.io/badge/coverage-lcov-green)](./lcov.info)
 ![Forge Tests](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg)
-
+[![CI – test/security-edges](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg?branch=test/security-edges)](https://github.com/reservebtc/contracts/actions/workflows/forge.yml?query=branch%3Atest%2Fsecurity-edges)
+[![Oracle Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-tests.yml)
+[![Forge Invariants](https://github.com/reservebtc/contracts/actions/workflows/forge-invariant.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/forge-invariant.yml)
 
 # ReserveBTC Contracts
 

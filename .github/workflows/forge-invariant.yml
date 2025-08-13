@@ -1,0 +1,34 @@
+name: forge-invariant
+
+on:
+  push:
+    branches: [ main, test/security-edges ]
+  pull_request:
+    branches: [ main, test/security-edges ]
+
+jobs:
+  invariant:
+    name: Forge Invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install deps
+        run: forge install --commit
+
+      - name: Build
+        run: forge build --sizes
+
+      - name: Run invariants (VaultWrBTC_Fuzz_Invariant)
+        env:
+          FOUNDRY_INVARIANT_RUNS: "128"
+          FOUNDRY_INVARIANT_DEPTH: "150"
+          FOUNDRY_PROFILE: "ci"
+        run: forge test --match-contract ^VaultWrBTC_Fuzz_Invariant$ -vv

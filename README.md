@@ -3,7 +3,6 @@
 ![Forge Tests](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg)
 [![CI – test/security-edges](https://github.com/reservebtc/contracts/actions/workflows/forge.yml/badge.svg?branch=test/security-edges)](https://github.com/reservebtc/contracts/actions/workflows/forge.yml)
 
-
 # ReserveBTC Contracts
 
 This repository contains the core smart contracts for the **ReserveBTC** system:

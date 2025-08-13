@@ -1,0 +1,33 @@
+name: Oracle Tests
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "src/**"
+      - "test/**"
+      - ".github/workflows/oracle-tests.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "test/**"
+      - ".github/workflows/oracle-tests.yml"
+
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Build
+        run: forge build
+
+      - name: Run Oracle tests
+        # Тесты только для Oracle (можешь оставить один контракт или все три)
+        run: forge test --match-contract 'Oracle_(Admin_Unit|Sync_Edges|Events_Unit)' -vv

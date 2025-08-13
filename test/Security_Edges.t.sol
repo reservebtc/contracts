@@ -19,9 +19,15 @@ contract MaliciousVault {
         // Attempt reentrancy into wrap() — must fail due to nonReentrant.
         if (attack) {
             (bool ok,) = token.call(abi.encodeWithSignature("wrap(uint256)", 1));
-            require(ok, "reentrancy-should-fail");
+            // The external call should NOT succeed reentering; token must revert.
+            require(ok, "reentrancy expected to be blocked by guard");
         }
     }
+}
+
+/// Lenient vault used only for testing token's early input checks (no onlyToken gate).
+contract LenientVault {
+    function onWrap(address /*user*/, uint256 /*amount*/) external { }
 }
 
 contract Security_Edges is Test {
@@ -82,7 +88,7 @@ contract Security_Edges is Test {
         evil.setAttack(true);
 
         vm.prank(user);
-        vm.expectRevert(bytes("reentrancy-should-fail"));
+        vm.expectRevert(bytes("reentrancy expected to be blocked by guard"));
         t2.wrap(1);
     }
 
@@ -100,21 +106,25 @@ contract Security_Edges is Test {
         vault.redeem(20);
     }
 
-    // --- Zero-address checks & bounds ---
+    // --- Zero-address checks & input bounds ---
     function test_ZeroChecks_And_Bounds() public {
+        // 1) setVault(0) should revert with "vault=0"
         rBTCSYNTH t3 = new rBTCSYNTH(address(oracle));
-
         vm.prank(address(oracle));
         vm.expectRevert(bytes("vault=0"));
         t3.setVault(address(0));
 
+        // 2) wrap without vault should revert with VaultNotSet
         rBTCSYNTH t4 = new rBTCSYNTH(address(oracle));
         vm.expectRevert(rBTCSYNTH.VaultNotSet.selector);
         t4.wrap(1);
 
+        // 3) set a lenient vault to ensure token reverts on amount=0 BEFORE any external call
+        LenientVault okVault = new LenientVault();
         vm.prank(address(oracle));
-        t4.setVault(address(vault));
+        t4.setVault(address(okVault));
 
+        // 4) wrap(0) should revert with "amount=0" (hits token's early check)
         vm.prank(user);
         vm.expectRevert(bytes("amount=0"));
         t4.wrap(0);

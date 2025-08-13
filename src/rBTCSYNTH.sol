@@ -86,6 +86,7 @@ contract rBTCSYNTH {
     // ---- soulbound wrap/unwrap ----
     function wrap(uint256 amount) external {
         if (vault == address(0)) revert VaultNotSet();
+        require(amount > 0, "amount=0"); // <-- added zero-amount guard
         if (_free[msg.sender] < amount) revert InsufficientFree();
 
         _free[msg.sender] -= amount;

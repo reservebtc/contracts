@@ -18,4 +18,4 @@ jobs:
           version: nightly
 
       - name: Run gas snapshot tests
-        run: forge test --match-contract Gas_Snapshots --gas-report
+        run: forge test --gas-report

@@ -1,0 +1,25 @@
+name: MegaETH Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Run tests on MegaETH
+        env:
+          MEGAETH_RPC_URL: \${{ secrets.MEGAETH_RPC_URL }}
+        run: forge test --rpc-url "$MEGAETH_RPC_URL" --no-match-path 'Invariant' --gas-report

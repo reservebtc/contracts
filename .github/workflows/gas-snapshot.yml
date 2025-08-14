@@ -26,6 +26,7 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
-      - run: forge build
-      - name: Run gas snapshot tests
+      - name: Build
+        run: forge build
+      - name: Run gas report (all tests)
         run: forge test --gas-report -vv

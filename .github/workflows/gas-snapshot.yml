@@ -2,12 +2,19 @@ name: gas-snapshot
 
 on:
   push:
-    branches: [ main, ci/** ]
+    branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
   pull_request:
     branches: [ main ]
-
-permissions:
-  contents: write
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
 
 jobs:
   gas:
@@ -27,21 +34,4 @@ jobs:
         run: forge build
 
       - name: Run gas report
-        run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
-
-      - name: Parse gas and write badge JSONs
-        shell: bash
-        run: |
-          mkdir -p badges
-          WRAP=$(grep -E '^\|\s*wrap\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          REDEEM=$(grep -E '^\|\s*redeem\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          WRAP=${WRAP:-"N/A"}
-          REDEEM=${REDEEM:-"N/A"}
-          printf '{"schemaVersion":1,"label":"gas wrap","message":"%s","color":"blue"}\n' "$WRAP" > badges/wrap.json
-          printf '{"schemaVersion":1,"label":"gas redeem","message":"%s","color":"green"}\n' "$REDEEM" > badges/redeem.json
-
-      - name: Commit badge JSONs
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "ci(gas): update gas badge JSONs"
-          file_pattern: badges/*.json
+        run: forge test --match-contract Gas_Snapshots --gas-report -vv

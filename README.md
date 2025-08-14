@@ -5,6 +5,7 @@
 [![Oracle Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-tests.yml)
 [![Forge Invariants](https://github.com/reservebtc/contracts/actions/workflows/forge-invariant.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/forge-invariant.yml)
 [![Invariants (all)](https://github.com/reservebtc/contracts/actions/workflows/invariants.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/invariants.yml)
+[![Token Tests](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml)
 
 # ReserveBTC Contracts
 

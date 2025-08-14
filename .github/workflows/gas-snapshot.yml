@@ -6,27 +6,32 @@ on:
     paths:
       - "src/**"
       - "test/**.t.sol"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
   pull_request:
     branches: [ main ]
     paths:
       - "src/**"
       - "test/**.t.sol"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
 
 jobs:
   gas-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
+
       - name: Build
         run: forge build
+
       - name: Run gas report (all tests)
         run: forge test --gas-report -vv

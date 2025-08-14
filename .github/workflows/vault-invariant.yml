@@ -1,0 +1,41 @@
+name: forge-invariant (vault)
+
+on:
+  push:
+    branches: [ main, test/**, feat/** ]
+    paths:
+      - "src/**"
+      - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - ".github/workflows/vault-invariant.yml"
+      - "foundry.toml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - ".github/workflows/vault-invariant.yml"
+      - "foundry.toml"
+
+jobs:
+  invariants-vault:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      # If you use submodules or remappings, add install step here (no --no-commit)
+      - name: Forge build
+        run: forge build
+
+      - name: Run vault invariants
+        env:
+          FOUNDRY_INVARIANT_RUNS: 256
+          FOUNDRY_INVARIANT_DEPTH: 200
+        run: |
+          forge test --match-contract VaultWrBTC_Conservation_Invariant -vv

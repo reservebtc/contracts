@@ -1,4 +1,4 @@
-name: gas-snapshot
+name: Gas Snapshot
 
 on:
   push:
@@ -15,7 +15,6 @@ on:
       - "test/Gas_Snapshots.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,7 +23,7 @@ jobs:
   gas:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -34,50 +33,39 @@ jobs:
         with:
           version: nightly
 
-      - name: Build
-        run: forge build
+      - name: Run gas snapshot (save report)
+        run: forge test --match-contract Gas_Snapshots --gas-report | tee gas-report.txt
 
-      - name: Run gas report
-        run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
-
-      - name: Parse wrap/redeem gas
-        id: parse
-        shell: bash
+      - name: Parse report and update badge JSONs
         run: |
-          WRAP=$(awk '/^[|] *wrap[ ]*[|]/{g=$0} END{print g}' gas-report.txt | awk -F'|' '{print $4}' | tr -d ' ')
-          REDEEM=$(awk '/^[|] *redeem[ ]*[|]/{g=$0} END{print g}' gas-report.txt | awk -F'|' '{print $4}' | tr -d ' ')
-          if [ -z "$WRAP" ]; then WRAP=0; fi
-          if [ -z "$REDEEM" ]; then REDEEM=0; fi
-          echo "wrap_gas=$WRAP" >> $GITHUB_OUTPUT
-          echo "redeem_gas=$REDEEM" >> $GITHUB_OUTPUT
-          echo "Parsed wrap=$WRAP, redeem=$REDEEM"
+          mkdir -p badges
 
-      - name: Update README badges
-        shell: bash
+ 
+          wrap=$(awk -F'|' '/\|[[:space:]]*wrap[[:space:]]*\|/ {v=$4; gsub(/[^0-9]/,"",v); if(v!=""){print v; exit}}' gas-report.txt)
+          redeem=$(awk -F'|' '/\|[[:space:]]*redeem[[:space:]]*\|/ {v=$4; gsub(/[^0-9]/,"",v); if(v!=""){print v; exit}}' gas-report.txt)
+
+
+          [ -z "$wrap" ] && wrap="N/A"
+          [ -z "$redeem" ] && redeem="N/A"
+
+          cat > badges/wrap.json <<EOF
+          {"schemaVersion":1,"label":"gas wrap","message":"$wrap","color":"blue"}
+          EOF
+
+          cat > badges/redeem.json <<EOF
+          {"schemaVersion":1,"label":"gas redeem","message":"$redeem","color":"green"}
+          EOF
+
+
+      - name: Commit badge files if changed (push only)
+        if: ${{ github.event_name == 'push' }}
         run: |
-          # <!-- GAS:WRAP -->...<!-- /GAS:WRAP -->
-          # <!-- GAS:REDEEM -->...<!-- /GAS:REDEEM -->
-          WRAP="${{ steps.parse.outputs.wrap_gas }}"
-          REDEEM="${{ steps.parse.outputs.redeem_gas }}"
-
-          tmpfile=$(mktemp)
-          awk -v W="$WRAP" -v R="$REDEEM" '
-            BEGIN {wrap=0; redeem=0}
-            /<!-- GAS:WRAP -->/   {print; print "![Gas wrap](https://img.shields.io/badge/gas%20wrap-" W "-blue)"; wrap=1; next}
-            /<!-- \/GAS:WRAP -->/ {wrap=0}
-            /<!-- GAS:REDEEM -->/ {print; print "![Gas redeem](https://img.shields.io/badge/gas%20redeem-" R "-green)"; redeem=1; next}
-            /<!-- \/GAS:REDEEM -->/ {redeem=0}
-            { if (!wrap && !redeem) print }
-          ' README.md > "$tmpfile"
-
-          if ! diff -q README.md "$tmpfile" > /dev/null 2>&1; then
-            mv "$tmpfile" README.md
+          if ! git diff --quiet -- badges; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add badges/wrap.json badges/redeem.json gas-report.txt
+            git commit -m "ci(gas): update gas badges [skip ci]"
+            git push
           else
-            rm "$tmpfile"
+            echo "No badge changes."
           fi
-
-      - name: Commit updated README (if changed)
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "ci(gas): update README gas badges (auto)"
-          file_pattern: "README.md"

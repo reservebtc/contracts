@@ -21,13 +21,7 @@ permissions:
 
 jobs:
   vault:
-    name: Vault ERC20 unit tests
     runs-on: ubuntu-latest
-    concurrency:
-      group: vault-tests-${{ github.ref }}
-      cancel-in-progress: true
-    env:
-      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
     steps:
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
@@ -38,9 +32,6 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Install deps
-        run: forge install --commit
 
       - name: Build
         run: forge build

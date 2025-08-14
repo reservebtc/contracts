@@ -3,17 +3,42 @@ name: token-tests
 on:
   push:
     branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/**"
+      - ".github/workflows/token-tests.yml"
+      - "foundry.toml"
   pull_request:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/**"
+      - ".github/workflows/token-tests.yml"
+      - "foundry.toml"
 
 jobs:
   token:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+
       - name: Install deps
-        run: forge install --commit
+        run: forge install
+
+      - name: Build
+        run: forge build --sizes
+
       - name: Run token unit tests
+        env:
+          FOUNDRY_PROFILE: ci
         run: forge test --match-contract RBTCSYNTH_Soulbound_Unit -vv

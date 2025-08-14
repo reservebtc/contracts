@@ -8,8 +8,6 @@
 [![Token Tests](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml)
 [![Vault tests](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml)
 ![Gas Snapshot](https://github.com/reservebtc/contracts/actions/workflows/gas-snapshot.yml/badge.svg)
-![gas wrap](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/reservebtc/contracts/main/badges/wrap.json)
-![gas redeem](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/reservebtc/contracts/main/badges/redeem.json)
 
 
 # ReserveBTC Contracts

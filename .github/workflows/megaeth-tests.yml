@@ -3,15 +3,18 @@ name: MegaETH Tests
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      RAW_RPC: ${{ secrets.MEGAETH_RPC_URL }}
+      FALLBACK_RPC: https://carrot.megaeth.com/rpc
+      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
+
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -21,9 +24,16 @@ jobs:
         with:
           version: stable
 
-      - name: Run tests on MegaETH
-        env:
-          MEGAETH_RPC_URL: ${{ secrets.MEGAETH_RPC_URL }} 
-          FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
+      - name: Pick RPC (secret or fallback) and validate
+        shell: bash
         run: |
-          forge test --rpc-url "$MEGAETH_RPC_URL" --no-match-path 'Invariant' --gas-report -vv
+          RPC="${RAW_RPC:-$FALLBACK_RPC}"
+          if [ -z "$RPC" ]; then
+            echo "ERROR: MEGAETH_RPC_URL is empty and no fallback provided." >&2
+            exit 1
+          fi
+          echo "RPC_URL=$RPC" >> "$GITHUB_ENV"
+
+      - name: Run tests on MegaETH
+        run: |
+          forge test --rpc-url "$RPC_URL" --no-match-path 'Invariant' --gas-report -vv

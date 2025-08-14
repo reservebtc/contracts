@@ -1,28 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+
 interface IRBTCSynth {
     function unwrapFromVault(address to, uint256 amount) external; // onlyVault
 }
 
-contract VaultWrBTC {
+interface IVaultWrBTC {
+    function onWrap(address user, uint256 amount) external;
+    function slashFromOracle(address user, uint256 amount) external;
+}
+
+contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
     // --- ERC20 metadata ---
     string public constant name = "Wrapped Reserve BTC";
     string public constant symbol = "wrBTC";
-    uint8 public constant decimals = 8;
+    uint8  public constant decimals = 8;
 
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
     // --- linked contracts & roles ---
-    address public immutable rbtc; // rBTC-SYNTH
+    address public immutable rbtc;   // rBTC-SYNTH
     address public immutable oracle; // rBTCOracle
 
     // --- events ---
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
-
     event Wrapped(address indexed user, uint256 amount);
     event Redeemed(address indexed user, uint256 amount);
     event Slashed(address indexed user, uint256 amount);
@@ -58,22 +64,22 @@ contract VaultWrBTC {
         emit Wrapped(user, amount);
     }
 
-    // ---- regular redemption: user burns wrBTC and receives back rBTC-SYNTH ----
-    function redeem(uint256 amount) external {
+    // ---- regular redemption ----
+    function redeem(uint256 amount) external nonReentrant {
         if (balanceOf[msg.sender] < amount) revert InsufficientBalance();
         _burn(msg.sender, amount);
         IRBTCSynth(rbtc).unwrapFromVault(msg.sender, amount);
         emit Redeemed(msg.sender, amount);
     }
 
-    // ---- forced slash by oracle command (reserve shortfall) ----
+    // ---- forced slash by oracle ----
     function slashFromOracle(address user, uint256 amount) external onlyOracle {
         if (balanceOf[user] < amount) revert InsufficientBalance();
         _burn(user, amount);
         emit Slashed(user, amount);
     }
 
-    // ---- standard ERC20 functions ----
+    // ---- ERC20 ----
     function transfer(address to, uint256 amount) external returns (bool) {
         if (balanceOf[msg.sender] < amount) revert InsufficientBalance();
         _move(msg.sender, to, amount);
@@ -95,11 +101,11 @@ contract VaultWrBTC {
         return true;
     }
 
-    // ---- internal helpers ----
+    // ---- internals ----
     function _move(address from, address to, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            balanceOf[to] += amount;
+            balanceOf[to]   += amount;
         }
         emit Transfer(from, to, amount);
     }
@@ -107,7 +113,7 @@ contract VaultWrBTC {
     function _burn(address from, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            totalSupply -= amount;
+            totalSupply     -= amount;
         }
         emit Transfer(from, address(0), amount);
     }

@@ -1,0 +1,46 @@
+name: forge-invariant (all)
+
+on:
+  push:
+    branches: [ main, test/**, feat/**, ci/** ]
+    paths:
+      - "src/**"
+      - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
+      - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - ".github/workflows/invariants.yml"
+      - "foundry.toml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
+      - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - ".github/workflows/invariants.yml"
+      - "foundry.toml"
+
+jobs:
+  invariants:
+    name: ${{ matrix.contract }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        contract: [ "VaultWrBTC_Conservation_Invariant", "Oracle_Sync_MultiUser_Invariant" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Build
+        run: forge build
+
+      - name: Run ${{ matrix.contract }}
+        env:
+          FOUNDRY_INVARIANT_RUNS: 256
+          FOUNDRY_INVARIANT_DEPTH: 200
+        run: forge test --match-contract ${{ matrix.contract }} -vv

@@ -8,6 +8,7 @@ on:
       - "test/Gas_Snapshots.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
+      - "README.md"
   pull_request:
     branches: [ main ]
     paths:
@@ -15,108 +16,61 @@ on:
       - "test/Gas_Snapshots.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
-  workflow_dispatch:
 
+# Needed to push the updated README
 permissions:
-  contents: write  
+  contents: write
 
 jobs:
   gas:
     runs-on: ubuntu-latest
+    env:
+      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
 
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-        
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          # use "stable" if you prefer
+          version: nightly
 
       - name: Build
         run: forge build
 
-      - name: Run gas tests and save report
-        run: |
-          set -eo pipefail
-          forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
-          echo "---- report head ----"
-          head -n 50 gas-report.txt || true
-          echo "---- report tail ----"
-          tail -n 50 gas-report.txt || true
+      - name: Run gas report
+        run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
 
-      - name: Parse wrap/redeem from report
+      - name: Parse wrap/redeem gas from report
         id: parse
         shell: bash
         run: |
-          set -eo pipefail
-
-   
-          WRAP=$(grep -E '^\|[[:space:]]*wrap[[:space:]]*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-
-          REDEEM=$(awk 'f;/^\| src\/VaultWrBTC\.sol:VaultWrBTC Contract/{f=1}' gas-report.txt | \
-                   grep -E '^\|[[:space:]]*redeem[[:space:]]*\|' -m1 | \
-                   awk -F'|' '{gsub(/ /,"",$3); print $3}')
-
-  
-          [[ -z "$WRAP" ]] && WRAP=0
-          [[ -z "$REDEEM" ]] && REDEEM=0
-
-          echo "wrap_avg=$WRAP" >> $GITHUB_OUTPUT
-          echo "redeem_avg=$REDEEM" >> $GITHUB_OUTPUT
-          echo "Parsed wrap=$WRAP, redeem=$REDEEM"
+          set -euo pipefail
+          # first matching line like: "| wrap | 103979 | 103985 | ... |"
+          WRAP=$(grep -E '^\|\s*wrap\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
+          # first matching line like: "| redeem | 42083 | 42087 | ... |"
+          REDEEM=$(grep -E '^\|\s*redeem\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
+          WRAP=${WRAP:-0}
+          REDEEM=${REDEEM:-0}
+          echo "wrap=${WRAP}"   >> "$GITHUB_OUTPUT"
+          echo "redeem=${REDEEM}" >> "$GITHUB_OUTPUT"
 
       - name: Update README badges
         shell: bash
         run: |
-          set -eo pipefail
+          set -euo pipefail
+          WRAP="${{ steps.parse.outputs.wrap }}"
+          REDEEM="${{ steps.parse.outputs.redeem }}"
+          # Update numeric parts of existing badges in README
+          sed -i -E "s/gas%20wrap-[0-9]+/gas%20wrap-${WRAP}/g" README.md
+          sed -i -E "s/gas%20redeem-[0-9]+/gas%20redeem-${REDEEM}/g" README.md
 
-          WRAP="${{ steps.parse.outputs.wrap_avg }}"
-          REDEEM="${{ steps.parse.outputs.redeem_avg }}"
-
-     
-          WRAP_BADGE="![Gas Wrap](https://img.shields.io/badge/gas%20wrap-${WRAP}-blue)"
-          REDEEM_BADGE="![Gas Redeem](https://img.shields.io/badge/gas%20redeem-${REDEEM}-green)"
-
-    
-          if grep -qE 'gas%20wrap-[0-9]+' README.md; then
-            sed -i -E "s#(gas%20wrap-)[0-9]+#\\1${WRAP}#g" README.md
-          fi
-          if grep -qE 'gas%20redeem-[0-9]+' README.md; then
-            sed -i -E "s#(gas%20redeem-)[0-9]+#\\1${REDEEM}#g" README.md
-          fi
-
-      
-          if ! grep -q 'gas%20wrap-' README.md; then
-            tmp=$(mktemp)
-            { echo "${WRAP_BADGE} ${REDEEM_BADGE}"; echo; cat README.md; } > "$tmp"
-            mv "$tmp" README.md
-          fi
-
-          echo "README updated (wrap=${WRAP}, redeem=${REDEEM})."
-
-      - name: Commit & push badge update (push events only)
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          set -eo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if ! git diff --quiet -- README.md; then
-            git add README.md
-            git commit -m "chore(gas): update gas badges (wrap=${{ steps.parse.outputs.wrap_avg }}, redeem=${{ steps.parse.outputs.redeem_avg }})"
-            git push
-          else
-            echo "No README changes to commit."
-          fi
-
-      - name: Upload gas report artifact (optional)
-        uses: actions/upload-artifact@v4
+      - name: Commit updated README (if changed)
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: gas-report
-          path: gas-report.txt
+          commit_message: "ci(gas): update gas badges (wrap=${{ steps.parse.outputs.wrap }}, redeem=${{ steps.parse.outputs.redeem }})"
+          file_pattern: README.md

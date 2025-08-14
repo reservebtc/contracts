@@ -46,4 +46,4 @@ jobs:
         run: forge build
 
       - name: Run Vault ERC20 unit tests
-        run: forge test --match-contract VaultWrBTC_ERC20_Unit -vv
+        run: forge test --match-path test/VaultWrBTC_ERC20_Unit.t.sol -vv

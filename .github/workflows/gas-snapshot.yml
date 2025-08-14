@@ -17,7 +17,6 @@ on:
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
 
-# Needed to push the updated README
 permissions:
   contents: write
 
@@ -36,8 +35,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          # use "stable" if you prefer
-          version: nightly
+          version: nightly  # use "stable" if you prefer
 
       - name: Build
         run: forge build
@@ -50,13 +48,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # first matching line like: "| wrap | 103979 | 103985 | ... |"
           WRAP=$(grep -E '^\|\s*wrap\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          # first matching line like: "| redeem | 42083 | 42087 | ... |"
           REDEEM=$(grep -E '^\|\s*redeem\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
           WRAP=${WRAP:-0}
           REDEEM=${REDEEM:-0}
-          echo "wrap=${WRAP}"   >> "$GITHUB_OUTPUT"
+          echo "wrap=${WRAP}" >> "$GITHUB_OUTPUT"
           echo "redeem=${REDEEM}" >> "$GITHUB_OUTPUT"
 
       - name: Update README badges
@@ -65,7 +61,6 @@ jobs:
           set -euo pipefail
           WRAP="${{ steps.parse.outputs.wrap }}"
           REDEEM="${{ steps.parse.outputs.redeem }}"
-          # Update numeric parts of existing badges in README
           sed -i -E "s/gas%20wrap-[0-9]+/gas%20wrap-${WRAP}/g" README.md
           sed -i -E "s/gas%20redeem-[0-9]+/gas%20redeem-${REDEEM}/g" README.md
 

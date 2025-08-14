@@ -1,0 +1,40 @@
+name: vault-tests
+
+on:
+  push:
+    branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/VaultWrBTC_ERC20_Unit.t.sol"
+      - ".github/workflows/vault-tests.yml"
+      - "foundry.toml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/VaultWrBTC_ERC20_Unit.t.sol"
+      - ".github/workflows/vault-tests.yml"
+      - "foundry.toml"
+
+jobs:
+  vault:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install deps
+        run: forge install --commit
+
+      - name: Build
+        run: forge build
+
+      - name: Run Vault ERC20 unit tests
+        run: forge test --match-path test/VaultWrBTC_ERC20_Unit.t.sol -vv

@@ -7,6 +7,7 @@ on:
       - "src/**"
       - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
       - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - "test/Oracle_Sync_Monotonic_And_Idempotent_Invariant.t.sol"
       - ".github/workflows/invariants.yml"
       - "foundry.toml"
   pull_request:
@@ -15,6 +16,7 @@ on:
       - "src/**"
       - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
       - "test/VaultWrBTC_Conservation_Invariant.t.sol"
+      - "test/Oracle_Sync_Monotonic_And_Idempotent_Invariant.t.sol"
       - ".github/workflows/invariants.yml"
       - "foundry.toml"
 
@@ -25,11 +27,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        contract: [ "VaultWrBTC_Conservation_Invariant", "Oracle_Sync_MultiUser_Invariant" ]
+        contract:
+          - "VaultWrBTC_Conservation_Invariant"
+          - "Oracle_Sync_MultiUser_Invariant"
+          - "Oracle_Sync_Monotonic_And_Idempotent_Invariant"
 
     steps:
-      - name: Checkout
+      - name: Checkout (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -43,4 +50,4 @@ jobs:
         env:
           FOUNDRY_INVARIANT_RUNS: 256
           FOUNDRY_INVARIANT_DEPTH: 200
-        run: forge test --match-contract ${{ matrix.contract }} -vv
+        run: forge test --match-contract "${{ matrix.contract }}" -vv

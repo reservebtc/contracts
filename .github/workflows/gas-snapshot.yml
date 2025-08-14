@@ -1,0 +1,83 @@
+name: gas-snapshot
+
+on:
+  push:
+    branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Build
+        run: forge build
+
+      - name: Run gas report
+        run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
+
+      - name: Parse wrap/redeem gas
+        id: parse
+        shell: bash
+        run: |
+          WRAP=$(awk '/^[|] *wrap[ ]*[|]/{g=$0} END{print g}' gas-report.txt | awk -F'|' '{print $4}' | tr -d ' ')
+          REDEEM=$(awk '/^[|] *redeem[ ]*[|]/{g=$0} END{print g}' gas-report.txt | awk -F'|' '{print $4}' | tr -d ' ')
+          if [ -z "$WRAP" ]; then WRAP=0; fi
+          if [ -z "$REDEEM" ]; then REDEEM=0; fi
+          echo "wrap_gas=$WRAP" >> $GITHUB_OUTPUT
+          echo "redeem_gas=$REDEEM" >> $GITHUB_OUTPUT
+          echo "Parsed wrap=$WRAP, redeem=$REDEEM"
+
+      - name: Update README badges
+        shell: bash
+        run: |
+          # <!-- GAS:WRAP -->...<!-- /GAS:WRAP -->
+          # <!-- GAS:REDEEM -->...<!-- /GAS:REDEEM -->
+          WRAP="${{ steps.parse.outputs.wrap_gas }}"
+          REDEEM="${{ steps.parse.outputs.redeem_gas }}"
+
+          tmpfile=$(mktemp)
+          awk -v W="$WRAP" -v R="$REDEEM" '
+            BEGIN {wrap=0; redeem=0}
+            /<!-- GAS:WRAP -->/   {print; print "![Gas wrap](https://img.shields.io/badge/gas%20wrap-" W "-blue)"; wrap=1; next}
+            /<!-- \/GAS:WRAP -->/ {wrap=0}
+            /<!-- GAS:REDEEM -->/ {print; print "![Gas redeem](https://img.shields.io/badge/gas%20redeem-" R "-green)"; redeem=1; next}
+            /<!-- \/GAS:REDEEM -->/ {redeem=0}
+            { if (!wrap && !redeem) print }
+          ' README.md > "$tmpfile"
+
+          if ! diff -q README.md "$tmpfile" > /dev/null 2>&1; then
+            mv "$tmpfile" README.md
+          else
+            rm "$tmpfile"
+          fi
+
+      - name: Commit updated README (if changed)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci(gas): update README gas badges (auto)"
+          file_pattern: "README.md"

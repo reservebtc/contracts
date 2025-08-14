@@ -7,6 +7,10 @@
 [![Invariants (all)](https://github.com/reservebtc/contracts/actions/workflows/invariants.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/invariants.yml)
 [![Token Tests](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/token-tests.yml)
 [![Vault tests](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml)
+![Gas Snapshot](https://github.com/reservebtc/contracts/actions/workflows/gas-snapshot.yml/badge.svg)
+![gas wrap](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/reservebtc/contracts/main/badges/wrap.json)
+![gas redeem](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/reservebtc/contracts/main/badges/redeem.json)
+
 
 # ReserveBTC Contracts
 
@@ -141,6 +145,19 @@ If reserves drop:
 
   * `owner` — manages operators and Merkle root.
   * `operator` — allowed to sync totals.
+
+---
+
+## Gas Snapshot
+
+| Contract    | Function               | Avg Gas |
+|-------------|-----------------------|---------|
+| rBTCSYNTH   | wrap                   | 103985  |
+| rBTCSYNTH   | redeem (via Vault)     | 42087   |
+| rBTCSYNTH   | mintFromOracle         | 43217   |
+| VaultWrBTC  | redeem                 | 42087   |
+
+![Gas Snapshot](https://github.com/reservebtc/contracts/actions/workflows/gas-snapshot.yml/badge.svg)
 
 ---
 

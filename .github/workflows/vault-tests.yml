@@ -33,6 +33,9 @@ jobs:
         with:
           version: nightly
 
+      - name: Install deps
+        run: forge install --commit
+
       - name: Build
         run: forge build
 

@@ -8,6 +8,7 @@ on:
       - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
       - "test/VaultWrBTC_Conservation_Invariant.t.sol"
       - "test/Oracle_Sync_Monotonic_And_Idempotent_Invariant.t.sol"
+      - "test/VaultWrBTC_Fuzz_Invariant.t.sol"
       - ".github/workflows/invariants.yml"
       - "foundry.toml"
   pull_request:
@@ -17,6 +18,7 @@ on:
       - "test/Oracle_Sync_MultiUser_Invariant.t.sol"
       - "test/VaultWrBTC_Conservation_Invariant.t.sol"
       - "test/Oracle_Sync_Monotonic_And_Idempotent_Invariant.t.sol"
+      - "test/VaultWrBTC_Fuzz_Invariant.t.sol"
       - ".github/workflows/invariants.yml"
       - "foundry.toml"
 
@@ -31,6 +33,7 @@ jobs:
           - "VaultWrBTC_Conservation_Invariant"
           - "Oracle_Sync_MultiUser_Invariant"
           - "Oracle_Sync_Monotonic_And_Idempotent_Invariant"
+          - "VaultWrBTC_Fuzz_Invariant"
 
     steps:
       - name: Checkout (with submodules)

@@ -1,0 +1,24 @@
+name: gas-report
+
+on:
+  push:
+    branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/**.t.sol"
+      - ".github/workflows/gas-report.yml"
+      - "foundry.toml"
+  pull_request:
+
+jobs:
+  gas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - run: forge build
+      - run: forge test --gas-report -vv

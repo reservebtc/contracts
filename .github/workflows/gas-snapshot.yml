@@ -5,14 +5,14 @@ on:
     branches: [ main, feat/**, ci/**, test/** ]
     paths:
       - "src/**"
-      - "test/Gas_Snapshots.t.sol"
+      - "test/**.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
   pull_request:
     branches: [ main ]
     paths:
       - "src/**"
-      - "test/Gas_Snapshots.t.sol"
+      - "test/**.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
 
@@ -33,5 +33,5 @@ jobs:
       - name: Build
         run: forge build
 
-      - name: Run gas report
-        run: forge test --match-contract Gas_Snapshots --gas-report -vv
+      - name: Run gas report (all tests)
+        run: forge test --gas-report -vv

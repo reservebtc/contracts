@@ -8,7 +8,6 @@ on:
       - "test/Gas_Snapshots.t.sol"
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
-      - "README.md"
   pull_request:
     branches: [ main ]
     paths:
@@ -17,6 +16,7 @@ on:
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
 
+# allow pushing badge JSONs
 permissions:
   contents: write
 
@@ -35,7 +35,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly  # use "stable" if you prefer
+          version: stable
 
       - name: Build
         run: forge build
@@ -43,29 +43,20 @@ jobs:
       - name: Run gas report
         run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
 
-      - name: Parse wrap/redeem gas from report
-        id: parse
+      - name: Parse gas and write badge JSONs
         shell: bash
         run: |
-          set -euo pipefail
+          mkdir -p badges
+          # extract median column for wrap/redeem; default to N/A
           WRAP=$(grep -E '^\|\s*wrap\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
           REDEEM=$(grep -E '^\|\s*redeem\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          WRAP=${WRAP:-0}
-          REDEEM=${REDEEM:-0}
-          echo "wrap=${WRAP}" >> "$GITHUB_OUTPUT"
-          echo "redeem=${REDEEM}" >> "$GITHUB_OUTPUT"
+          WRAP=${WRAP:-"N/A"}
+          REDEEM=${REDEEM:-"N/A"}
+          printf '{"schemaVersion":1,"label":"gas wrap","message":"%s","color":"blue"}\n'   "$WRAP"   > badges/wrap.json
+          printf '{"schemaVersion":1,"label":"gas redeem","message":"%s","color":"green"}\n' "$REDEEM" > badges/redeem.json
 
-      - name: Update README badges
-        shell: bash
-        run: |
-          set -euo pipefail
-          WRAP="${{ steps.parse.outputs.wrap }}"
-          REDEEM="${{ steps.parse.outputs.redeem }}"
-          sed -i -E "s/gas%20wrap-[0-9]+/gas%20wrap-${WRAP}/g" README.md
-          sed -i -E "s/gas%20redeem-[0-9]+/gas%20redeem-${REDEEM}/g" README.md
-
-      - name: Commit updated README (if changed)
+      - name: Commit badge JSONs (if changed)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "ci(gas): update gas badges (wrap=${{ steps.parse.outputs.wrap }}, redeem=${{ steps.parse.outputs.redeem }})"
-          file_pattern: README.md
+          commit_message: "ci(gas): update gas badge JSONs (wrap/redeem)"
+          file_pattern: badges/*.json

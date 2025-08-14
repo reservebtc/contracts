@@ -24,7 +24,7 @@ jobs:
     name: Vault ERC20 unit tests
     runs-on: ubuntu-latest
     concurrency:
-      group: ci-vault-tests-${{ github.ref }}
+      group: vault-tests-${{ github.ref }}
       cancel-in-progress: true
     env:
       FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
@@ -46,8 +46,4 @@ jobs:
         run: forge build
 
       - name: Run Vault ERC20 unit tests
-        shell: bash
-        run: |
-          # Prefer exact file; if path ever changes, fall back to contract filter
-          forge test --match-path test/VaultWrBTC_ERC20_Unit.t.sol -vv || \
-          forge test --match-contract VaultWrBTC_ERC20_Unit -vv
+        run: forge test --match-contract VaultWrBTC_ERC20_Unit -vv

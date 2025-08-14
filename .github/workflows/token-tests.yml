@@ -1,0 +1,19 @@
+name: token-tests
+
+on:
+  push:
+    branches: [ main, feat/**, ci/**, test/** ]
+  pull_request:
+
+jobs:
+  token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Install deps
+        run: forge install --commit
+      - name: Run token unit tests
+        run: forge test --match-contract RBTCSYNTH_Soulbound_Unit -vv

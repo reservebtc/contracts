@@ -2,20 +2,67 @@ name: Gas Snapshot
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feat/**, ci/**, test/** ]
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
   pull_request:
     branches: [ main ]
+    paths:
+      - "src/**"
+      - "test/Gas_Snapshots.t.sol"
+      - ".github/workflows/gas-snapshot.yml"
+      - "foundry.toml"
+
+permissions:
+  contents: write
 
 jobs:
-  gas-tests:
+  gas:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
-      - name: Run gas snapshot tests
-        run: forge test --match-contract Gas_Snapshots --gas-report
+      - name: Run gas snapshot (save report)
+        run: forge test --match-contract Gas_Snapshots --gas-report | tee gas-report.txt
+
+      - name: Parse report and update badge JSONs
+        run: |
+          mkdir -p badges
+        
+          wrap=$(awk -F'|' '/\|[[:space:]]*wrap[[:space:]]*\|/ {v=$4; gsub(/[^0-9]/,"",v); if(v!=""){print v; exit}}' gas-report.txt)
+          redeem=$(awk -F'|' '/\|[[:space:]]*redeem[[:space:]]*\|/ {v=$4; gsub(/[^0-9]/,"",v); if(v!=""){print v; exit}}' gas-report.txt)
+
+          [ -z "$wrap" ] && wrap="N/A"
+          [ -z "$redeem" ] && redeem="N/A"
+
+          cat > badges/wrap.json <<EOF
+          {"schemaVersion":1,"label":"gas wrap","message":"$wrap","color":"blue"}
+          EOF
+
+          cat > badges/redeem.json <<EOF
+          {"schemaVersion":1,"label":"gas redeem","message":"$redeem","color":"green"}
+          EOF
+
+      - name: Commit badge files if changed (push only)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if ! git diff --quiet -- badges; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add badges/wrap.json badges/redeem.json gas-report.txt
+            git commit -m "ci(gas): update gas badges [skip ci]"
+            git push
+          else
+            echo "No badge changes."
+          fi

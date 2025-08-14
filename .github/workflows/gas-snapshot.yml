@@ -16,16 +16,9 @@ on:
       - ".github/workflows/gas-snapshot.yml"
       - "foundry.toml"
 
-# allow pushing badge JSONs
-permissions:
-  contents: write
-
 jobs:
   gas:
     runs-on: ubuntu-latest
-    env:
-      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,22 +34,12 @@ jobs:
         run: forge build
 
       - name: Run gas report
-        run: forge test --match-contract Gas_Snapshots --gas-report -vv | tee gas-report.txt
+        run: forge test --match-contract Gas_Snapshots --gas-report -vv
 
-      - name: Parse gas and write badge JSONs
-        shell: bash
-        run: |
-          mkdir -p badges
-          # extract median column for wrap/redeem; default to N/A
-          WRAP=$(grep -E '^\|\s*wrap\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          REDEEM=$(grep -E '^\|\s*redeem\s*\|' -m1 gas-report.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}')
-          WRAP=${WRAP:-"N/A"}
-          REDEEM=${REDEEM:-"N/A"}
-          printf '{"schemaVersion":1,"label":"gas wrap","message":"%s","color":"blue"}\n'   "$WRAP"   > badges/wrap.json
-          printf '{"schemaVersion":1,"label":"gas redeem","message":"%s","color":"green"}\n' "$REDEEM" > badges/redeem.json
-
-      - name: Commit badge JSONs (if changed)
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Upload gas report artifact
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "ci(gas): update gas badge JSONs (wrap/redeem)"
-          file_pattern: badges/*.json
+          name: gas-report
+          path: |
+            ./out
+            ./cache

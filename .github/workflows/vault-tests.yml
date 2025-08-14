@@ -1,5 +1,3 @@
-name: vault-tests
-
 on:
   push:
     branches: [ main, feat/**, ci/**, test/** ]
@@ -16,22 +14,22 @@ on:
       - ".github/workflows/vault-tests.yml"
       - "foundry.toml"
 
-permissions:
-  contents: read
-
 jobs:
-  vault-tests:
+  vault:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup Foundry (stable)
+      - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: stable
+          version: nightly
+
+      - name: Install deps
+        run: forge install --commit
 
       - name: Build
         run: forge build

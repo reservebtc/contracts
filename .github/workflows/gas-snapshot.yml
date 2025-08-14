@@ -1,4 +1,4 @@
-name: gas-snapshot
+name: gas-tests
 
 on:
   push:
@@ -6,32 +6,26 @@ on:
     paths:
       - "src/**"
       - "test/**.t.sol"
-      - ".github/workflows/gas-snapshot.yml"
+      - ".github/workflows/ci.yml"
       - "foundry.toml"
   pull_request:
     branches: [ main ]
     paths:
       - "src/**"
       - "test/**.t.sol"
-      - ".github/workflows/gas-snapshot.yml"
+      - ".github/workflows/ci.yml"
       - "foundry.toml"
 
 jobs:
-  gas:
+  gas-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
-
-      - name: Build
-        run: forge build
-
-      - name: Run gas report (all tests)
+      - run: forge build
+      - name: Run gas snapshot tests
         run: forge test --gas-report -vv

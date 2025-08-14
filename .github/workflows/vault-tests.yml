@@ -16,20 +16,38 @@ on:
       - ".github/workflows/vault-tests.yml"
       - "foundry.toml"
 
+permissions:
+  contents: read
+
 jobs:
   vault:
+    name: Vault ERC20 unit tests
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-vault-tests-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"
     steps:
-      - name: Checkout
+      - name: Checkout (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
+      - name: Install deps
+        run: forge install --commit
+
       - name: Build
         run: forge build
 
       - name: Run Vault ERC20 unit tests
-        run: forge test --match-contract VaultWrBTC_ERC20_Unit -vv
+        shell: bash
+        run: |
+          # Prefer exact file; if path ever changes, fall back to contract filter
+          forge test --match-path test/VaultWrBTC_ERC20_Unit.t.sol -vv || \
+          forge test --match-contract VaultWrBTC_ERC20_Unit -vv

@@ -1,3 +1,5 @@
+name: vault-tests
+
 on:
   push:
     branches: [ main, feat/**, ci/**, test/** ]

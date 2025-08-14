@@ -26,11 +26,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive  
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+
 
       - name: Install deps
         run: forge install
@@ -41,4 +43,4 @@ jobs:
       - name: Run token unit tests
         env:
           FOUNDRY_PROFILE: ci
-        run: forge test --match-contract RBTCSYNTH_Soulbound_Unit -vv
+        run: forge test --match-path test/RBTCSYNTH_Soulbound_Unit.t.sol -vv

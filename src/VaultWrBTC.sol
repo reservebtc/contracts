@@ -7,16 +7,11 @@ interface IRBTCSynth {
     function unwrapFromVault(address to, uint256 amount) external; // onlyVault
 }
 
-interface IVaultWrBTC {
-    function onWrap(address user, uint256 amount) external;
-    function slashFromOracle(address user, uint256 amount) external;
-}
-
-contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
+contract VaultWrBTC is ReentrancyGuard {
     // --- ERC20 metadata ---
     string public constant name = "Wrapped Reserve BTC";
     string public constant symbol = "wrBTC";
-    uint8  public constant decimals = 8;
+    uint8 public constant decimals = 8;
 
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
@@ -29,6 +24,7 @@ contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
     // --- events ---
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
+
     event Wrapped(address indexed user, uint256 amount);
     event Redeemed(address indexed user, uint256 amount);
     event Slashed(address indexed user, uint256 amount);
@@ -64,7 +60,7 @@ contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
         emit Wrapped(user, amount);
     }
 
-    // ---- regular redemption ----
+    // ---- regular redemption: user burns wrBTC and receives back rBTC-SYNTH ----
     function redeem(uint256 amount) external nonReentrant {
         if (balanceOf[msg.sender] < amount) revert InsufficientBalance();
         _burn(msg.sender, amount);
@@ -72,14 +68,14 @@ contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
         emit Redeemed(msg.sender, amount);
     }
 
-    // ---- forced slash by oracle ----
+    // ---- forced slash by oracle command (reserve shortfall) ----
     function slashFromOracle(address user, uint256 amount) external onlyOracle {
         if (balanceOf[user] < amount) revert InsufficientBalance();
         _burn(user, amount);
         emit Slashed(user, amount);
     }
 
-    // ---- ERC20 ----
+    // ---- standard ERC20 functions ----
     function transfer(address to, uint256 amount) external returns (bool) {
         if (balanceOf[msg.sender] < amount) revert InsufficientBalance();
         _move(msg.sender, to, amount);
@@ -96,16 +92,18 @@ contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
         uint256 allowedAmount = allowance[from][msg.sender];
         if (allowedAmount < amount) revert InsufficientAllowance();
         if (balanceOf[from] < amount) revert InsufficientBalance();
-        if (allowedAmount != type(uint256).max) allowance[from][msg.sender] = allowedAmount - amount;
+        if (allowedAmount != type(uint256).max) {
+            allowance[from][msg.sender] = allowedAmount - amount;
+        }
         _move(from, to, amount);
         return true;
     }
 
-    // ---- internals ----
+    // ---- internal helpers ----
     function _move(address from, address to, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            balanceOf[to]   += amount;
+            balanceOf[to] += amount;
         }
         emit Transfer(from, to, amount);
     }
@@ -113,7 +111,7 @@ contract VaultWrBTC is IVaultWrBTC, ReentrancyGuard {
     function _burn(address from, uint256 amount) internal {
         unchecked {
             balanceOf[from] -= amount;
-            totalSupply     -= amount;
+            totalSupply -= amount;
         }
         emit Transfer(from, address(0), amount);
     }

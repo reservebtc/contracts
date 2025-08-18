@@ -4,3 +4,7 @@ coverage-html/
 # local env (keep example tracked)
 .envout/
 cache/
+
+# build artifacts
+out/
+cache/

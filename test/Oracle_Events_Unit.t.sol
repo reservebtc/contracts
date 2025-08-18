@@ -154,15 +154,12 @@ contract Oracle_Events_Unit is Test {
         oracle.setOperator(address(0xBAD), true);
     }
 
-    /* ---------- Owner sets zero owner: must emit and revoke old owner ---------- */
-    // NOTE: The contract allows zero owner (no revert). We assert the event and permission loss.
-    function test_SetOwnerZero_EmitsAndRevokesOldOwner() public {
-        vm.expectEmit(true, false, false, true);
-        emit OwnerChanged(address(0));
+    /* ---------- Owner sets zero owner: must revert ---------- */
+    // The contract now forbids setting the owner to the zero address.
+    // Expect a revert with message "owner=0" and no state changes.
+    function test_SetOwnerZero_Reverts() public {
+        vm.expectRevert(bytes("owner=0"));
         oracle.setOwner(address(0));
-
-        vm.expectRevert(rBTCOracle.OnlyOwner.selector);
-        oracle.setOperator(address(0xCAFE), true);
     }
 
     /* ---------- syncVerifiedTotal should not emit oracle admin events ---------- */

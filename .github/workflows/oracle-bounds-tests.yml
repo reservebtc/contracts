@@ -1,0 +1,19 @@
+name: Oracle Bounds Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Run Oracle Bounds Unit tests
+        run: forge test --match-contract Oracle_Bounds_Unit -vvv

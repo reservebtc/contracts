@@ -12,7 +12,7 @@
 [![Foundry Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml)
 [![Oracle Bounds Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-bounds-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-bounds-tests.yml)
 [![Oracle Access-Control Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml)
-[![Oracle Events Source-of-Truth](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth.yml/badge.svg?branch=main)](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth.yml)
+[![Oracle Events Source-of-Truth Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth-tests.yml/badge.svg?branch=main)](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth-tests.yml)
 
 
 # ReserveBTC Contracts

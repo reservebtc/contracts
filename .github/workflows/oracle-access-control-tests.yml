@@ -1,0 +1,19 @@
+name: Oracle Access-Control Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Run Oracle Access-Control tests
+        run: forge test --match-contract Oracle_Access_Control_Unit -vvv

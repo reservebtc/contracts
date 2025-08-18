@@ -11,6 +11,7 @@
 [![MegaETH Integration Tests](https://github.com/reservebtc/contracts/actions/workflows/megaeth-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/megaeth-tests.yml)
 [![Foundry Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml)
 [![Oracle Bounds Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-bounds-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-bounds-tests.yml)
+[![Oracle Access-Control Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml)
 
 
 # ReserveBTC Contracts

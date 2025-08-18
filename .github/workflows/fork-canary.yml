@@ -1,0 +1,23 @@
+name: Fork Canary Simulation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  fork-canary-test:
+    runs-on: ubuntu-latest
+    env:
+      ETH_RPC_URL: https://carrot.megaeth.com/rpc
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run fork canary simulation
+        run: forge test --match-contract Oracle_Fork_Canary_Simulation -vvv

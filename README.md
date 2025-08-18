@@ -14,6 +14,7 @@
 [![Oracle Access-Control Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-access-control-tests.yml)
 [![Oracle Events Source-of-Truth Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth.yml/badge.svg?branch=main)](https://github.com/reservebtc/contracts/actions/workflows/oracle-events-source-of-truth.yml)
 [![Oracle Reentrancy Regression Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-reentrancy-tests.yml/badge.svg?branch=main)](https://github.com/reservebtc/contracts/actions/workflows/oracle-reentrancy-tests.yml)
+[![Fork Canary Simulation](https://github.com/<USER>/<REPO>/actions/workflows/fork-canary.yml/badge.svg)](https://github.com/<USER>/<REPO>/actions/workflows/fork-canary.yml)
 
 
 # ReserveBTC Contracts

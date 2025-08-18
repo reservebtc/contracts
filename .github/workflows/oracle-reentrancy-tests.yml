@@ -1,0 +1,19 @@
+name: Oracle Reentrancy Regression Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Run reentrancy regression tests
+        run: forge test --match-contract Oracle_Reentrancy_Regression_Unit -vvv

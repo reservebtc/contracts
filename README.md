@@ -9,7 +9,7 @@
 [![Vault tests](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/vault-tests.yml)
 [![Gas Report](https://github.com/reservebtc/contracts/actions/workflows/gas-report.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/gas-report.yml)
 [![MegaETH Integration Tests](https://github.com/reservebtc/contracts/actions/workflows/megaeth-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/megaeth-tests.yml)
-![Oracle Resilience Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml/badge.svg)
+[![Foundry Tests](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml/badge.svg)](https://github.com/reservebtc/contracts/actions/workflows/oracle-resilience-tests.yml)
 
 
 # ReserveBTC Contracts

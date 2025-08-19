@@ -7,34 +7,26 @@ if git diff --quiet && git diff --cached --quiet; then
 fi
 
 git add -A
-git commit -F - <<EOF
-✅ All 84 tests passed across 24 suites:
-1. Integration E2E
-2. Oracle Admin
-3. Oracle Events
-4. Oracle Invariant
-5. Oracle Merkle
-6. Oracle Sync — Monotonic & Idempotent
-7. Oracle Sync — Multi-User Invariant
-8. Oracle Sync — Unit
-9. rBTCSYNTH Soulbound Unit
-10. RBTCSynth Unit
-11. Security Edges
-12. VaultWrBTC — Conservation Invariant
-13. VaultWrBTC — Edges
-14. VaultWrBTC — ERC20
-15. VaultWrBTC — Fuzz Invariant
-16. VaultWrBTC — Unit
-17. Gas Snapshots
-18. MegaETH Integration Tests
-19. Oracle Resilience — Deficit Handling & Idempotency
-20. Oracle Bounds — Upper Limits & Long-Path Syncs
-21. Oracle Access-Control — Owner/Operator Negative Paths
-22. Oracle Events — Source-of-Truth Ordering
-23. Oracle Reentrancy Regression — wrap/redeem/sync
-24. Fork Canary Simulation
 
-Stable run @ $(date '+%Y-%m-%d %H:%M:%S')
-EOF
+# Многострочный коммит-месседж (разово — можно редактировать по месту)
+git commit -F - <<'COMMITMSG'
+chore(megaeth): deploy rBTCOracle/rBTCSYNTH/VaultWrBTC + on-chain smoke (sync→wrap→redeem)
+
+- Oracle:  0xFB9945fc9FFCca96aF0eBEe359e5C6e9dA7af83a
+- Token:   0x56a421E2A8721D579C8D82572bF1d695A239A8b6
+- Vault:   0x1eDed1Be152b0DD6F9Fb1A84a1f778f2c8Ef6cDe
+- Operator enabled: 0xea8fFEe94Da08f65765EC2A095e9931FD03e6c1b
+- Merkle root: 0x0000000000000000000000000000000000000000000000000000000000000000
+
+Smoke E2E:
+- syncVerifiedTotal(USER, 1000, 1) ✔
+- wrap(600) ✔
+- redeem(500) ✔
+
+Invariants held:
+- wr.totalSupply == Σ escrow
+- wr.balanceOf(u) == escrowOf(u)
+- free + escrow == totalBacked
+COMMITMSG
 
 git push origin "$branch"

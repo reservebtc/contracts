@@ -21,6 +21,11 @@ interface IWrVault {
     function slashFromOracle(address user, uint256 amount) external;
 }
 
+// ✨ Added: minimal interface to call token.setVault(address)
+interface IVaultSetter {
+    function setVault(address v) external;
+}
+
 /// @dev Minimal MerkleProof implementation (OpenZeppelin-compatible order).
 library MerkleProof {
     function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf) internal pure returns (bool ok) {
@@ -44,7 +49,7 @@ library MerkleProof {
 contract rBTCOracle is IReserveProofOracle, ReentrancyGuard {
     // ---- linked contracts ----
     IRBTCToken public immutable rbtc; // rBTC-SYNTH token
-    IWrVault public immutable vault;  // wrBTC vault
+    IWrVault   public immutable vault;  // wrBTC vault
 
     // ---- operators/admin ----
     address public owner;
@@ -53,6 +58,9 @@ contract rBTCOracle is IReserveProofOracle, ReentrancyGuard {
     // ---- integrator-facing state ----
     bytes32 public override merkleRoot;                       // binding user ↔ btcAddr
     mapping(address => uint64) public override lastVerifiedRound; // optional round index
+
+    // ✨ Added: one-time wiring flag
+    bool private _vaultWired;
 
     // ---- events ----
     event OwnerChanged(address indexed newOwner);
@@ -110,6 +118,13 @@ contract rBTCOracle is IReserveProofOracle, ReentrancyGuard {
     function setMerkleRoot(bytes32 root) external onlyOwner {
         merkleRoot = root;
         emit MerkleRootUpdated(root);
+    }
+
+    // ✨ Added: one-time owner-only wiring method to call token.setVault(vault)
+    function wireVaultOnce() external onlyOwner {
+        require(!_vaultWired, "already wired");
+        IVaultSetter(address(rbtc)).setVault(address(vault));
+        _vaultWired = true;
     }
 
     // --------------- IReserveProofOracle (view) ---------------
